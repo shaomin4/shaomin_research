@@ -1,0 +1,11 @@
+# 文件說明
+- NAE.R : non-negative AutoEncoder Like NMF 並含有Online Learning 的作法！
+- tryVAE.R : 嘗試使用VAE訓練所有資料的測試。
+- vaeV2.R : 透過VAE結合Online training 依照年份切割訓練的測試。
+- visnetwork.R : 畫出網路圖的code.
+- subtopic.R : 找出子主題文top10文字。
+- chooseTopPlot.R ： 選擇某一個主題，依照年份區分畫出網路圖。
+- create_dym.R : 建立document year matrix 的code。
+- create_tfym.R : 建立 term-freq matrix 的code。
+- decoder.R : 用於解碼VAE模型做預測。
+- multimodal.R : 嘗試做多模態模型的code。

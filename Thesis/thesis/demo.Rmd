@@ -1,0 +1,100 @@
+---
+title: "Topic Diffusion Discovery (ML Data)"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r include=FALSE}
+## Prepare dataset and monitor function.
+library(flexdashboard)
+library(ggplot2)
+library(pwr)
+library(shiny)
+library(shinyWidgets)
+source("R/find_topic.R")
+source("R/termGJSD.R")
+load("thesis/NAE11~19/topic_evo.RData")
+
+topic_terms <- lapply(topic_evo, function(x) x$h_head2)
+```
+
+Visualization 
+=====================================================================
+Column {data-width=70%}
+-------------------------------------
+### 主題分佈 {data-height=50%}
+```{r warning=FALSE}
+renderPlot({
+  Input_term <- input$sel_term
+  if(is.null(Input_term)){
+    Input_term <- "dropout"
+  }
+
+  monitorTerm(Input_term, periods = c(2011,2013,2015,2017,2019), numOfPeriods = length(topic_terms), numOfTopics = ncol(topic_terms[[1]]), p_term_topic_list = topic_terms)
+})
+```
+
+### JSD圖 {data-height=50%}
+```{r warning=FALSE}
+renderPlot({
+  Input_term <- input$sel_term
+  if (is.null(Input_term)) {
+    Input_term <- "dropout"
+  }
+  tt_evol = monitorTerm(Input_term, periods = c("2011","2013","2015","2017","2019"), numOfPeriods = length(topic_terms), numOfTopics = ncol(topic_terms[[1]]), p_term_topic_list = topic_terms)
+  GJSDs = data.frame(year = c(2011,2013,2015,2017,2019), JSD = c(NA, tt_evol$GJSD), JSD_kt = c(NA, tt_evol$GJSD_kt))
+
+  ggplot(GJSDs, aes(year)) +
+    geom_line(aes(year, JSD), color = "blue") +
+    geom_point(aes(year, JSD), shape = 15, size = 5, color ="blue") +
+    geom_line(aes(year, JSD_kt), color = "red") +
+    geom_point(aes(year, JSD_kt), color = "red", shape = 19, size = 5) +
+    annotate("text", parse = TRUE, x = 2018.5, y=GJSDs[3,2], label= "italic(D[GJS])", size = 5) +
+    annotate("text", parse = TRUE, x = 2018.5, y=GJSDs[3,3], label= "italic(D[GJS [kt]])", size = 5) +
+    theme_bw(base_size = 15) +
+    scale_x_continuous(name ="Year", breaks = c(2011,2013,2015,2017,2019)) +
+    ylim(-.01, max(GJSDs$JSD_kt, GJSDs$JSD) + .1)
+})
+```
+
+Column {data-width=30%}
+-------------------------------------
+
+### 詞彙輸入 {data-height=50%}
+```{r warning=FALSE}
+renderUI(
+  textInput("term", "Input term", "dropout",width = "100%"),
+  verbatimTextOutput("value")
+)
+```
+
+### 詞彙選擇 {data-height=50%}
+```{r warning=FALSE}
+renderUI({ 
+  Input_term = input$term
+  test = rownames(topic_terms[[1]])[grep(Input_term, rownames(topic_terms[[1]]))]
+  selectInput("sel_term", "Terms", test,selectize=TRUE)
+  #selectInput("sel_term", "Terms", c(Choose='', test),selectize=TRUE)
+})
+
+```
+
+Topic Term 
+=====================================================================
+
+### 主題內的詞彙 {data-height=100%}
+```{r warning=FALSE}
+top10_terms <- lapply(topic_evo, function(x) {
+  top10_terms <- find_topic(x$topic_term, 10)$term
+  top10_terms <- apply(top10_terms, 2, function(x) paste0(x, collapse = ",\n"))
+})
+top10_terms <- do.call(what = cbind, args = top10_terms)
+colnames(top10_terms) <- c("2011","2013","2015","2017","2019")
+DT::renderDT(
+  DT::datatable(data = top10_terms,
+                options = list(pageLength = 10, scrollY = "550px"))
+)
+```
