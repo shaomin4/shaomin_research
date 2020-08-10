@@ -1,0 +1,12 @@
+# Sholud be at /lib/systemd/system/shinyprocess.service
+[Unit]
+Description=shinyprocess
+After=network.target
+
+[Service]
+WorkingDirectory=/srv/shiny-server/uap
+User=root
+ExecStart=/usr/local/bin/R CMD BATCH /srv/shiny-server/uap/shiny_processor.R
+
+[Install]
+WantedBy=multi-user.target

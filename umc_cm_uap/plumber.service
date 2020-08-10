@@ -1,0 +1,12 @@
+# Should be at /lib/systemd/system/plumber.service
+[Unit]
+Description=shinyprocess
+After=network.target
+
+[Service]
+WorkingDirectory=/srv/shiny-server/uap
+User=root
+ExecStart=/usr/local/bin/R CMD BATCH /srv/shiny-server/uap/plumber_drive.R
+
+[Install]
+WantedBy=multi-user.target
